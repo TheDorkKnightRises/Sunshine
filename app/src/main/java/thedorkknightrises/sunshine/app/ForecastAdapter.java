@@ -64,7 +64,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
      */
     @Override
     public ForecastAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        if ( viewGroup instanceof RecyclerView ) {
+        if (viewGroup instanceof RecyclerView) {
             int layoutId = -1;
             switch (viewType) {
                 case VIEW_TYPE_TODAY: {
@@ -101,7 +101,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
                 useLongToday = false;
         }
 
-        if ( Utility.usingLocalGraphics(mContext) ) {
+        if (Utility.usingLocalGraphics(mContext)) {
             forecastAdapterViewHolder.mIconView.setImageResource(defaultImage);
         } else {
             Glide.with(mContext)
@@ -170,7 +170,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 
     @Override
     public int getItemCount() {
-        if ( null == mCursor ) return 0;
+        if (null == mCursor) return 0;
         return mCursor.getCount();
     }
 
@@ -185,8 +185,8 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     }
 
     public void selectView(RecyclerView.ViewHolder viewHolder) {
-        if ( viewHolder instanceof ForecastAdapterViewHolder ) {
-            ForecastAdapterViewHolder vfh = (ForecastAdapterViewHolder)viewHolder;
+        if (viewHolder instanceof ForecastAdapterViewHolder) {
+            ForecastAdapterViewHolder vfh = (ForecastAdapterViewHolder) viewHolder;
             vfh.onClick(vfh.itemView);
         }
     }

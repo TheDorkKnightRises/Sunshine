@@ -42,7 +42,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     public static final String COLUMN_WEATHER_ID = "weather_id";
     public static final String COLUMN_MIN_TEMP = "min";
     public static final String COLUMN_MAX_TEMP = "max";
-    public static final String COLUMN_SHORT_DESC = "short_desc";
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(500);
@@ -94,9 +93,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         };
         float mXOffset;
         float mYOffset;
-        int maxTemp = 0, minTemp = 0;
+        String maxTemp = "N/A", minTemp = "N/A";
         int wearID = 0;
-        String desc = "Sunshine";
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -136,6 +134,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
+
+            googleApiClient.connect();
         }
 
         @Override
@@ -159,9 +159,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             if (visible) {
                 registerReceiver();
 
-                // Connect for receiving message from mobile
-                googleApiClient.connect();
-
                 // Update time zone in case it changed while we weren't visible.
                 mCalendar.setTimeZone(TimeZone.getDefault());
                 invalidate();
@@ -178,6 +175,9 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mRegisteredTimeZoneReceiver = true;
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
             SunshineWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
+
+            if (googleApiClient != null && !googleApiClient.isConnected())
+                googleApiClient.connect();
         }
 
         private void unregisterReceiver() {
@@ -186,9 +186,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = false;
             SunshineWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
-            if (googleApiClient != null && googleApiClient.isConnected()) {
+            if (googleApiClient != null && googleApiClient.isConnected())
                 googleApiClient.disconnect();
-            }
         }
 
         @Override
@@ -274,8 +273,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
             int weatherId = getWeatherIcon(wearID);
             if (weatherId == -1) {
-                Bitmap weatherIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
-                canvas.drawBitmap(weatherIcon, mXOffset + 10, mYOffset - 55, mTextPaint);
+                Bitmap weatherIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+                canvas.drawBitmap(weatherIcon, mXOffset + 10, mYOffset, mTextPaint);
             } else {
                 Bitmap weatherIcon = BitmapFactory.decodeResource(getResources(), weatherId);
                 canvas.drawBitmap(weatherIcon, mXOffset + 10, mYOffset - 55, mTextPaint);
@@ -345,24 +344,21 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             for (DataEvent event : dataEvents) {
                 if (event.getType() == DataEvent.TYPE_CHANGED) {
                     DataItem item = event.getDataItem();
-                    if (item.getUri().getPath().compareTo("/wear") == 0) {
+                    if (item.getUri().getPath().equals("/wear")) {
                         DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
                         if (dataMap.containsKey(COLUMN_MAX_TEMP))
-                            maxTemp = dataMap.getInt(COLUMN_MAX_TEMP);
+                            maxTemp = dataMap.getString(COLUMN_MAX_TEMP);
                         if (dataMap.containsKey(COLUMN_MIN_TEMP))
-                            minTemp = dataMap.getInt(COLUMN_MIN_TEMP);
+                            minTemp = dataMap.getString(COLUMN_MIN_TEMP);
                         if (dataMap.containsKey(COLUMN_WEATHER_ID))
-                            wearID = dataMap.getInt("WEAR_ID");
-                        if (dataMap.containsKey(COLUMN_SHORT_DESC))
-                            desc = dataMap.getString(COLUMN_SHORT_DESC);
+                            wearID = dataMap.getInt(COLUMN_WEATHER_ID);
                     }
+
                 }
             }
 
             dataEvents.release();
             invalidate();
-            googleApiClient.disconnect();
-            googleApiClient.connect();
         }
 
 
